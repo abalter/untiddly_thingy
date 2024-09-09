@@ -1,54 +1,49 @@
-newNoteButton.addEventListener('click', createNoteElement);
+// app_controls.js
 
-clearButton.addEventListener('click', () => {
-    const notes = document.querySelectorAll('.note');
-    notes.forEach(note => note.style.display = 'none');
-});
+function initializeApp() {
+    // Initialize event listeners
+    setupSearch();
+    setupSorting();
+    setupNewNoteButton();
+    setupSaveButton();
+    setupClearButton();
 
-searchForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const field = searchField.value;
-    const term = searchTerm.value.toLowerCase().trim(); // Added trim to avoid leading/trailing spaces
-    const notes = document.querySelectorAll('.note');
+    // Initialize notes
+    updateNoteList();
+}
 
-    // Reset all notes to hidden initially
-    notes.forEach(note => note.style.display = 'none');
-
-    console.log(`Searching for "${term}" in field "${field}" using operator "or"`);
-
-    // Filter notes based on attributes using .matches
-    notes.forEach(note => {
-        const attributes = ['data-title', 'data-content', 'data-tags', 'data-relates-to', 'data-depends-on'];
-        let match = false;
-
-        if (field === 'global') {
-            // If global search, check all attributes
-            match = attributes.some(attr => note.getAttribute(attr)?.toLowerCase().includes(term));
-        } else {
-            // Check only the selected attribute
-            const attribute = `data-${field}`;
-            match = note.getAttribute(attribute)?.toLowerCase().includes(term);
-        }
-
-        console.log(`Checking note: ${note.dataset.id}, match: ${match}`);
-
-        if (match) {
-            populateForm(note, {
-                title: note.dataset.title,
-                content: note.dataset.content,
-                tags: note.dataset.tags,
-                relatesTo: note.dataset.relatesTo,
-                dependsOn: note.dataset.dependsOn
-            });
-            note.style.display = 'block';
-            console.log(`Note displayed: ${note.dataset.id}`);
-        }
+function setupSearch() {
+    document.getElementById('search-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        searchNotes();
     });
-});
+}
 
-// Sorting by field
-sortButton.addEventListener('click', () => {
-    const field = sortField.value;
+function setupSorting() {
+    document.getElementById('sort-button').addEventListener('click', sortNotes);
+}
+
+function setupNewNoteButton() {
+    document.getElementById('new-note-button').addEventListener('click', createNewNote);
+}
+
+function setupSaveButton() {
+    document.getElementById('save-button').addEventListener('click', saveAllNotes);
+}
+
+function setupClearButton() {
+    document.getElementById('clear-button').addEventListener('click', clearSearchResults);
+}
+
+function updateNoteList() {
+    // Use note.js to update the notes display
+    updateNotesDisplay();
+}
+
+// app_controls.js
+
+function sortNotes() {
+    const field = document.getElementById('sort-field').value;
     const notes = Array.from(document.querySelectorAll('.note'));
 
     const sortedNotes = notes.sort((a, b) => {
@@ -61,11 +56,12 @@ sortButton.addEventListener('click', () => {
         }
     });
 
-    sortedNotes.forEach(note => notesContainer.appendChild(note));
-});
+    sortedNotes.forEach(note => document.getElementById('notes-container').appendChild(note));
+}
 
-// Save HTML to local drive
-saveButton.addEventListener('click', () => {
+// app_controls.js
+
+function saveAllNotes() {
     const htmlContent = document.documentElement.outerHTML;
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -77,11 +73,64 @@ saveButton.addEventListener('click', () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-});
+}
 
-function loadExistingNotes() {
+// app_controls.js
+
+function clearSearchResults() {
+    // Clear the search input field
+    document.getElementById('search-term').value = '';
+
+    // Show all notes again (clear any filters applied by the search)
     const notes = document.querySelectorAll('.note');
     notes.forEach(note => {
-        note.style.display = 'none'; // Ensure notes are hidden initially
+        note.style.display = 'block'; // Display all notes again
+    });
+}
+
+function searchNotes() {
+    const searchTerm = document.getElementById('search-term').value.toLowerCase();
+    const notes = document.querySelectorAll('.note');
+
+    notes.forEach(note => {
+        const title = note.dataset.title.toLowerCase();
+        const content = note.dataset.content.toLowerCase();
+        const tags = note.dataset.tags.toLowerCase();
+        const relatesTo = note.dataset.relatesTo.toLowerCase();
+        const dependsOn = note.dataset.dependsOn.toLowerCase();
+
+        if (title.includes(searchTerm) || content.includes(searchTerm) || tags.includes(searchTerm) || relatesTo.includes(searchTerm) || dependsOn.includes(searchTerm)) {
+            note.style.display = 'block'; // Show the note
+            populateForm(note, {
+                title: note.dataset.title,
+                content: note.dataset.content,
+                tags: note.dataset.tags,
+                relatesTo: note.dataset.relatesTo,
+                dependsOn: note.dataset.dependsOn
+            });
+        } else {
+            note.style.display = 'none'; // Hide the note
+        }
+    });
+}
+
+function updateAutocomplete() {
+    const tagsList = [...new Set([...document.querySelectorAll('.note')].flatMap(note => note.dataset.tags.split(',').map(tag => tag.trim())))];
+    const titlesList = [...document.querySelectorAll('.note')].map(note => note.dataset.title);
+
+    const tagsDatalist = document.getElementById('tags-datalist');
+    tagsDatalist.innerHTML = '';
+    tagsList.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        tagsDatalist.appendChild(option);
+    });
+
+    const titlesDatalist = document.getElementById('titles-datalist');
+    titlesDatalist.innerHTML = '';
+    titlesList.forEach(title => {
+        const option = document.createElement('option');
+        option.value = title;
+        titlesDatalist.appendChild(option);
     });
 }

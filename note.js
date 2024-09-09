@@ -1,128 +1,92 @@
-const tagsDatalist = document.getElementById('tags-datalist');
-const titlesDatalist = document.getElementById('titles-datalist');
+// note.js
 
-function updateAutocomplete() {
-    tagsDatalist.innerHTML = '';
-    tagsList.forEach(tag => {
-        const option = document.createElement('option');
-        option.value = tag;
-        tagsDatalist.appendChild(option);
-    });
+function createNewNote() {
+    const template = document.querySelector('#note-template');
+    const newNote = template.content.cloneNode(true);
 
-    titlesDatalist.innerHTML = '';
-    titlesList.forEach(title => {
-        const option = document.createElement('option');
-        option.value = title;
-        titlesDatalist.appendChild(option);
+    // Append new note to container
+    document.querySelector('#notes-container').prepend(newNote);
+
+    // Additional logic for new notes (e.g., setting up event listeners)
+    setupNoteEvents();
+}
+
+function saveNote(noteElement) {
+    // Logic for saving individual notes
+    const title = noteElement.querySelector('.note-title').value;
+    const content = noteElement.querySelector('.note-content').value;
+    // Update the dataset attributes
+    noteElement.dataset.title = title;
+    noteElement.dataset.content = content;
+
+    // Handle saving or updating logic
+}
+
+function updateNotesDisplay() {
+    // Logic to update and refresh notes based on search or sorting
+    const notes = document.querySelectorAll('.note');
+    notes.forEach(note => {
+        // Perform any necessary updates to each note
     });
 }
 
-// Save note
-function saveNote(note, form) {
-    const title = form.querySelector('.note-title').value.trim();
-    const content = form.querySelector('.note-content').value.trim();
-    const tags = Array.from(form.querySelectorAll('.tag')).map(tagElement => tagElement.textContent.trim().slice(0, -1)).join(', ');
-    const relatesTo = form.querySelector('.note-relates-to').value.trim();
-    const dependsOn = form.querySelector('.note-depends-on').value.trim();
+function setupNoteEvents() {
+    const saveButtons = document.querySelectorAll('.save-note-button');
+    saveButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const noteElement = event.target.closest('.note'); // Closest note element
+            if (noteElement) {
+                saveNote(noteElement);
+            } else {
+                console.error('Error: noteElement is null');
+            }
+        });
+    });
+}
 
-    if (titlesList.includes(title) && note.dataset.id !== title.toLowerCase().replace(/\s/g, '-')) {
-        alert('Title must be unique!');
+function saveNote(noteElement) {
+    const title = noteElement.querySelector('.note-title').value.trim();
+    const content = noteElement.querySelector('.note-content').value.trim();
+    const tags = noteElement.querySelector('.note-tags').value.trim();
+    const relatesTo = noteElement.querySelector('.note-relates-to').value.trim();
+    const dependsOn = noteElement.querySelector('.note-depends-on').value.trim();
+
+    // Check if the note already exists
+    if (!noteElement) {
+        console.error('Error: Note element not found.');
         return;
     }
 
-    note.dataset.id = title.toLowerCase().replace(/\s/g, '-');
-    note.dataset.title = title;
-    note.dataset.tags = tags;
-    note.dataset.relatesTo = relatesTo;
-    note.dataset.dependsOn = dependsOn;
-    note.dataset.modified = new Date().toISOString();
-    note.dataset.content = content; // Store the content in the data-content attribute
+    // Update dataset attributes
+    noteElement.dataset.title = title;
+    noteElement.dataset.content = content;
+    noteElement.dataset.tags = tags;
+    noteElement.dataset.relatesTo = relatesTo;
+    noteElement.dataset.dependsOn = dependsOn;
+    noteElement.dataset.modified = new Date().toISOString();
 
-    // Update lists and autocomplete
-    tagsList = [...new Set([...tagsList, ...tags.split(', ').map(tag => tag.trim()).filter(tag => tag)])];
-    updateLists();
+    // Update autocomplete lists
     updateAutocomplete();
 
     // Re-populate the form with updated data
-    populateForm(note, {
-        title,
-        content,
-        tags,
-        relatesTo,
-        dependsOn
-    });
+    populateForm(noteElement, { title, content, tags, relatesTo, dependsOn });
 }
 
-// Function to add tags with autocomplete and remove functionality
-function addTags(tagsInput, tags) {
-    const tagsContainer = document.createElement('div');
-    tagsContainer.className = 'tags-container';
+function populateForm(note, data = {}) {
+    const form = document.querySelector('#note-template').content.cloneNode(true);
 
-    // Add initial tags
-    tags.forEach(tag => {
-        const tagElement = document.createElement('span');
-        tagElement.className = 'tag';
-        tagElement.textContent = `${tag} `;
-        const removeButton = document.createElement('button');
-        removeButton.innerHTML = '&times;';
-        removeButton.onclick = () => {
-            tagsContainer.removeChild(tagElement);
-        };
-        tagElement.appendChild(removeButton);
-        tagsContainer.appendChild(tagElement);
-    });
+    const titleInput = form.querySelector('.note-title');
+    const contentInput = form.querySelector('.note-content');
+    const tagsInput = form.querySelector('.note-tags');
+    const relatesToInput = form.querySelector('.note-relates-to');
+    const dependsOnInput = form.querySelector('.note-depends-on');
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'tags-autocomplete';
+    titleInput.value = data.title || note.dataset.title || '';
+    contentInput.value = data.content || note.dataset.content || '';
+    tagsInput.value = data.tags || note.dataset.tags || '';
+    relatesToInput.value = data.relatesTo || note.dataset.relatesTo || '';
+    dependsOnInput.value = data.dependsOn || note.dataset.dependsOn || '';
 
-    input.addEventListener('input', function () {
-        const value = input.value;
-        const suggestions = tagsList.filter(tag => tag.startsWith(value) && !tags.includes(tag));
-        const autocomplete = document.createElement('datalist');
-        autocomplete.id = 'tags-datalist';
-        suggestions.forEach(tag => {
-            const option = document.createElement('option');
-            option.value = tag;
-            autocomplete.appendChild(option);
-        });
-        if (input.list) {
-            input.list.innerHTML = '';
-            input.list = null;
-        }
-        input.setAttribute('list', 'tags-datalist');
-        input.appendChild(autocomplete);
-    });
-
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ',') {
-            e.preventDefault();
-            const val = input.value.trim().replace(/,/, '');
-            if (val && !tags.includes(val)) {
-                tags.push(val);
-                const tagElement = document.createElement('span');
-                tagElement.className = 'tag';
-                tagElement.textContent = `${val} `;
-                const removeButton = document.createElement('button');
-                removeButton.innerHTML = '&times;';
-                removeButton.onclick = () => {
-                    tagsContainer.removeChild(tagElement);
-                    tags = tags.filter(tag => tag !== val);
-                };
-                tagElement.appendChild(removeButton);
-                tagsContainer.appendChild(tagElement);
-                input.value = '';
-            }
-        }
-    });
-
-    tagsInput.parentNode.insertBefore(tagsContainer, tagsInput);
-    tagsInput.parentNode.insertBefore(input, tagsInput);
-    tagsInput.style.display = 'none';
-}
-
-function updateLists() {
-    tagsList = [...new Set([...document.querySelectorAll('.note')].flatMap(note => note.dataset.tags.split(', ').map(tag => tag.trim())))];
-    titlesList = [...document.querySelectorAll('.note')].map(note => note.dataset.title);
-    updateAutocomplete();
+    note.innerHTML = ''; // Clear the current content of the note div
+    note.appendChild(form);
 }
