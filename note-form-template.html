@@ -1,0 +1,18 @@
+<template id="note-template">
+    <form class="note-form">
+        <label for="title">Title:</label>
+        <input type="text" name="title" class="note-title" required>
+        <label for="content">Content:</label>
+        <textarea name="content" class="note-content" rows="4"></textarea>
+        <label for="tags">Tags:</label>
+        <datalist id="tags-datalist"></datalist>
+        <input type="text" name="tags" class="note-tags" list="tags-datalist">
+        <label for="relates-to">Relates To:</label>
+        <datalist id="relates-to-datalist"></datalist>
+        <input type="text" name="relates-to" class="note-relates-to" list="titles-datalist">
+        <label for="depends-on">Depends On:</label>
+        <datalist id="depends-on-datalist"></datalist>
+        <input type="text" name="depends-on" class="note-depends-on" list="titles-datalist">
+        <button type="button" class="save-note-button">Save</button>
+    </form>
+</template>

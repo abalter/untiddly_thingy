@@ -1,0 +1,38 @@
+body {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.left-section {
+  flex: 2;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note {
+  display: none;
+  margin: 20px 0;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.note-form label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.note-form textarea {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.note-form input {
+  width: 100%;
+  margin-bottom: 10px;
+}
