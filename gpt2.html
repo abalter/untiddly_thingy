@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Application</title>
+    <!-- Link to MVP CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    <style>
+        body {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+        .left-section {
+            flex: 2;
+        }
+        .right-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .note {
+            display: none;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .note-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .note-form textarea {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .note-form input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left section for notes -->
+    <div class="left-section">
+        <h1>Notes</h1>
+        <div id="notes-container">
+            <!-- Existing Notes can be placed here -->
+            <div class="note" data-id="travel-notes" data-tags="travel, Europe" data-title="Travel notes" data-relates-to="" data-depends-on="" data-content="We went to Italy and France." data-created="2024-08-12T21:10:20.832Z" data-modified="2024-08-12T21:10:47.157Z"></div>
+            <div class="note" data-id="garden-ideas" data-tags="household, garden" data-title="Garden ideas" data-relates-to="" data-depends-on="Seeds" data-content="Plant lettuce." data-created="2024-08-12T21:10:06.591Z" data-modified="2024-08-12T21:31:20.150Z"></div>
+            <div class="note" data-id="supplies-needed" data-tags="household, furniture" data-title="Supplies needed" data-relates-to="Furniture needed" data-depends-on="" data-created="2024-08-12T21:09:19.737Z" data-modified="2024-08-12T21:09:57.272Z" data-content="Get shims for bookcase. Get sliders for chair."></div>
+            <div class="note" data-id="furniture-needed" data-tags="household, furniture" data-title="Furniture needed" data-relates-to="" data-depends-on="Supplies needed" data-created="2024-08-12T21:08:45.796Z" data-modified="2024-08-12T21:10:05.021Z" data-content="Bookcase for the living room. Chair for the dining room."></div>
+        </div>
+    </div>
+
+    <!-- Right section for search and other controls -->
+    <div class="right-section">
+        <h1>Search & Controls</h1>
+        <!-- Search Form -->
+        <form id="search-form">
+            <label for="search-field">Search Field:</label>
+            <select id="search-field">
+                <option value="global">Global Search</option>
+                <option value="title">Title</option>
+                <option value="content">Content</option>
+                <option value="tags">Tags</option>
+                <option value="relates-to">Relates To</option>
+                <option value="depends-on">Depends On</option>
+            </select>
+
+            <input type="text" id="search-term" name="search" placeholder="Search term">
+            <button type="submit">Search</button>
+            <button type="button" id="clear-button">Clear</button>
+
+            <label for="sort-field">Sort by:</label>
+            <select id="sort-field">
+                <option value="title">Title</option>
+                <option value="created">Created Date</option>
+                <option value="modified">Modified Date</option>
+            </select>
+            <button type="button" id="sort-button">Sort</button>
+        </form>
+
+        <!-- New Note Button -->
+        <button id="new-note-button">New Note</button>
+
+        <!-- Save Button -->
+        <button id="save-button">Save Notes</button>
+    </div>
+
+    <!-- Note Template -->
+    <template id="note-template">
+        <form class="note-form">
+            <label for="title">Title:</label>
+            <input type="text" name="title" class="note-title" required>
+
+            <label for="content">Content:</label>
+            <textarea name="content" class="note-content" rows="4"></textarea>
+
+            <label for="tags">Tags:</label>
+            <input type="text" name="tags" class="note-tags" list="tags-datalist">
+
+            <label for="relates-to">Relates To:</label>
+            <input type="text" name="relates-to" class="note-relates-to" list="titles-datalist">
+
+            <label for="depends-on">Depends On:</label>
+            <input type="text" name="depends-on" class="note-depends-on" list="titles-datalist">
+
+            <button type="button" class="save-note-button">Save</button>
+        </form>
+    </template>
+
+    <datalist id="tags-datalist"></datalist>
+    <datalist id="titles-datalist"></datalist>
+
+    <script>
+        const notesContainer = document.getElementById('notes-container');
+        const noteTemplate = document.getElementById('note-template').content;
+        const newNoteButton = document.getElementById('new-note-button');
+        const saveButton = document.getElementById('save-button');
+        const searchForm = document.getElementById('search-form');
+        const searchField = document.getElementById('search-field');
+        const searchTerm = document.getElementById('search-term');
+        const sortField = document.getElementById('sort-field');
+        const sortButton = document.getElementById('sort-button');
+        const clearButton = document.getElementById('clear-button');
+
+        let tagsList = [];
+        let titlesList = [];
+
+        function updateAutocomplete() {
+            const tagsDatalist = document.getElementById('tags-datalist');
+            tagsDatalist.innerHTML = '';
+            tagsList.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                tagsDatalist.appendChild(option);
+            });
+
+            const titlesDatalist = document.getElementById('titles-datalist');
+            titlesDatalist.innerHTML = '';
+            titlesList.forEach(title => {
+                const option = document.createElement('option');
+                option.value = title;
+                titlesDatalist.appendChild(option);
+            });
+        }
+
+        function updateLists() {
+            tagsList = [...new Set([...document.querySelectorAll('.note')].flatMap(note => note.dataset.tags.split(',').map(tag => tag.trim())))];
+            titlesList = [...document.querySelectorAll('.note')].map(note => note.dataset.title);
+            updateAutocomplete();
+        }
+
+        function loadExistingNotes() {
+            const notes = document.querySelectorAll('.note');
+            notes.forEach(note => {
+                note.style.display = 'none'; // Ensure notes are hidden initially
+            });
+        }
+
+        function populateForm(note, data = {}) {
+            const form = noteTemplate.cloneNode(true).querySelector('.note-form');
+
+            const titleInput = form.querySelector('.note-title');
+            const contentInput = form.querySelector('.note-content');
+            const tagsInput = form.querySelector('.note-tags');
+            const relatesToInput = form.querySelector('.note-relates-to');
+            const dependsOnInput = form.querySelector('.note-depends-on');
+
+            titleInput.value = data.title || '';
+            contentInput.value = data.content || '';
+            tagsInput.value = data.tags || '';
+            relatesToInput.value = data.relatesTo || '';
+            dependsOnInput.value = data.dependsOn || '';
+
+            form.querySelector('.save-note-button').addEventListener('click', () => saveNote(note, form));
+
+            note.innerHTML = ''; // Clear the note before inserting the form
+            note.appendChild(form);
+            note.style.display = 'block';
+        }
+
+        function createNoteElement() {
+            const note = document.createElement('div');
+            note.classList.add('note');
+            notesContainer.insertBefore(note, notesContainer.firstChild);
+
+            populateForm(note); // Populate with empty form for new notes
+            updateLists();
+        }
+
+        function saveNote(note, form) {
+            const title = form.querySelector('.note-title').value.trim();
+            const content = form.querySelector('.note-content').value.trim();
+            const tags = form.querySelector('.note-tags').value.trim();
+            const relatesTo = form.querySelector('.note-relates-to').value.trim();
+            const dependsOn = form.querySelector('.note-depends-on').value.trim();
+
+            if (titlesList.includes(title) && note.dataset.id !== title.toLowerCase().replace(/\s/g, '-')) {
+                alert('Title must be unique!');
+                return;
+            }
+
+            if (relatesTo && !titlesList.includes(relatesTo)) {
+                alert(`Relates_To must match an existing title. '${relatesTo}' does not exist.`);
+                return;
+            }
+
+            if (dependsOn && !titlesList.includes(dependsOn)) {
+                alert(`Depends_On must match an existing title. '${dependsOn}' does not exist.`);
+                return;
+            }
+
+            note.dataset.id = title.toLowerCase().replace(/\s/g, '-');
+            note.dataset.title = title;
+            note.dataset.tags = tags;
+            note.dataset.relatesTo = relatesTo;
+            note.dataset.dependsOn = dependsOn;
+            note.dataset.modified = new Date().toISOString();
+            note.dataset.content = content;  // Store the content in the data-content attribute
+
+            // Re-populate the form with updated data
+            populateForm(note, { title, content, tags, relatesTo, dependsOn });
+            updateLists();
+        }
+
+        newNoteButton.addEventListener('click', createNoteElement);
+
+        clearButton.addEventListener('click', () => {
+            const notes = document.querySelectorAll('.note');
+            notes.forEach(note => note.style.display = 'none');
+            searchTerm.value = '';
+        });
+
+        searchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const field = searchField.value;
+            const term = searchTerm.value.toLowerCase();
+            const notes = document.querySelectorAll('.note');
+
+            notes.forEach(note => {
+                let match = false;
+                const title = note.dataset.title.toLowerCase();
+                const content = note.dataset.content.toLowerCase();
+                const tags = note.dataset.tags.toLowerCase();
+                const relatesTo = note.dataset.relatesTo.toLowerCase();
+                const dependsOn = note.dataset.dependsOn.toLowerCase();
+
+                // Perform global search or field-specific search
+                if (field === 'global') {
+                    match = title.includes(term) || content.includes(term) || tags.includes(term) || relatesTo.includes(term) || dependsOn.includes(term);
+                } else {
+                    match = note.dataset[field].toLowerCase().includes(term);
+                }
+
+                // Show or hide notes based on the match result
+                if (match) {
+                    note.style.display = 'block';
+                } else {
+                    note.style.display = 'none';
+                }
+            });
+        });
+
+        // Sorting by field
+        sortButton.addEventListener('click', () => {
+            const field = sortField.value;
+            const notes = Array.from(document.querySelectorAll('.note'));
+
+            const sortedNotes = notes.sort((a, b) => {
+                if (field === 'title') {
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                } else if (field === 'created') {
+                    return new Date(a.dataset.created) - new Date(b.dataset.created);
+                } else if (field === 'modified') {
+                    return new Date(a.dataset.modified) - new Date(b.dataset.modified);
+                }
+            });
+
+            sortedNotes.forEach(note => notesContainer.appendChild(note));
+        });
+
+        // Save HTML to local drive
+        saveButton.addEventListener('click', () => {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'notes.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        updateLists();
+        loadExistingNotes();
+    </script>
+</body>
+</html>
