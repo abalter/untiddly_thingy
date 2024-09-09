@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes Application</title>
-    <!-- Link to MVP CSS -->
     <link rel="stylesheet" href="https://unpkg.com/mvp.css">
     <style>
         body {
@@ -175,7 +174,6 @@
             titleInput.value = data.title || '';
             contentInput.value = data.content || '';
             tagsInput.value = data.tags || '';
-
             relatesToInput.value = data.relatesTo || '';
             dependsOnInput.value = data.dependsOn || '';
 
@@ -207,21 +205,21 @@
                 return;
             }
 
-            if (relatesTo && !titlesList.includes(relatesTo)) {
-                alert(`Relates_To must match an existing title. '${relatesTo}' does not exist.`);
-                return;
-            }
+            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+            const relatesToArray = relatesTo.split(',').map(item => item.trim()).filter(item => item);
+            const dependsOnArray = dependsOn.split(',').map(item => item.trim()).filter(item => item);
 
-            if (dependsOn && !titlesList.includes(dependsOn)) {
-                alert(`Depends_On must match an existing title. '${dependsOn}' does not exist.`);
-                return;
-            }
+            // Add new tags, relates-to, and depends-on values to the lists
+            tagsList = [...new Set([...tagsList, ...tagsArray])];
+            titlesList = [...new Set([...titlesList, ...relatesToArray, ...dependsOnArray])];
+
+            updateAutocomplete();
 
             note.dataset.id = title.toLowerCase().replace(/\s/g, '-');
             note.dataset.title = title;
-            note.dataset.tags = tags;
-            note.dataset.relatesTo = relatesTo;
-            note.dataset.dependsOn = dependsOn;
+            note.dataset.tags = tagsArray.join(', ');
+            note.dataset.relatesTo = relatesToArray.join(', ');
+            note.dataset.dependsOn = dependsOnArray.join(', ');
             note.dataset.modified = new Date().toISOString();
             note.dataset.content = content; // Store the content in the data-content attribute
 
@@ -229,9 +227,9 @@
             populateForm(note, {
                 title,
                 content,
-                tags,
-                relatesTo,
-                dependsOn
+                tags: note.dataset.tags,
+                relatesTo: note.dataset.relatesTo,
+                dependsOn: note.dataset.dependsOn
             });
             updateLists();
         }
@@ -243,7 +241,6 @@
             notes.forEach(note => note.style.display = 'none');
         });
 
-        // Optimize the search logic
         searchForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const field = searchField.value;
