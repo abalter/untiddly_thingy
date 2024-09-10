@@ -71,53 +71,43 @@ document.addEventListener("DOMContentLoaded", () => {
         const relatesTo = data.relatesTo ? data.relatesTo.split(', ') : [];
         const dependsOn = data.dependsOn ? data.dependsOn.split(', ') : [];
 
-        // Convert tags, relates-to, and depends-on into Tagify-friendly format
-        const tagsStr = tags.map(tag => ({ value: tag }));
-        const relatesToStr = relatesTo.map(item => ({ value: item }));
-        const dependsOnStr = dependsOn.map(item => ({ value: item }));
-
-        createdDateSpan.textContent = data.created ? `Created: ${data.created}` : '';
-        modifiedDateSpan.textContent = data.modified ? `Modified: ${data.modified}` : '';
-
-        console.log(`Populating Tagify for note: ${data.title}`);
-        console.log('Existing tags:', tags);
-        console.log('Tags list:', tagsList);
-
         // Initialize Tagify for Tags
         const tagifyTags = new Tagify(tagsInput, {
             whitelist: tagsList,
-            enforceWhitelist: true,
+            enforceWhitelist: false,
             dropdown: {
                 position: 'input',
                 enabled: 0
             }
         });
-        tagifyTags.addTags(tagsStr);
+        tagifyTags.addTags(tags);
 
         // Initialize Tagify for Relates To
         const tagifyRelatesTo = new Tagify(relatesToInput, {
             whitelist: titlesList,
-            enforceWhitelist: true,
+            enforceWhitelist: false,
             dropdown: {
                 position: 'input',
                 enabled: 0
             }
         });
-        tagifyRelatesTo.addTags(relatesToStr);
+        tagifyRelatesTo.addTags(relatesTo);
 
         // Initialize Tagify for Depends On
         const tagifyDependsOn = new Tagify(dependsOnInput, {
             whitelist: titlesList,
-            enforceWhitelist: true,
+            enforceWhitelist: false,
             dropdown: {
                 position: 'input',
                 enabled: 0
             }
         });
-        tagifyDependsOn.addTags(dependsOnStr);
+        tagifyDependsOn.addTags(dependsOn);
 
-        form.querySelector('.save-note-button').addEventListener('click', () => saveNote(note, form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
-        form.querySelector('.edit-note-button').addEventListener('click', () => editNoteForm(form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
+        form.querySelector('.save-note-button').addEventListener('click', () => saveNote(
+            note, form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
+        form.querySelector('.edit-note-button').addEventListener('click', () => editNoteForm(
+            form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
         form.querySelector('.delete-note-button').addEventListener('click', () => deleteNoteElement(note));
 
         // Set fields to readOnly initially to ensure they are not editable
@@ -131,19 +121,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setFormFieldsEditable(form, editable, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
-        const readOnlyState = editable ? false : true;
-        form.querySelector('.note-title').readOnly = readOnlyState;
-        form.querySelector('.note-content').readOnly = readOnlyState;
+        // Toggle read-only state for standard input fields
+        form.querySelector('.note-title').readOnly = !editable;
+        form.querySelector('.note-content').readOnly = !editable;
 
         console.log(`Setting form fields to ${editable ? 'editable' : 'non-editable'}`);
 
-        tagifyTags.settings.readonly = !editable;
-        tagifyRelatesTo.settings.readonly = !editable;
-        tagifyDependsOn.settings.readonly = !editable;
+        // Toggle readonly and contenteditable state for Tagify elements using Tagify's methods
+        tagifyTags.setReadonly(!editable);
+        tagifyRelatesTo.setReadonly(!editable);
+        tagifyDependsOn.setReadonly(!editable);
 
-        tagifyTags.update();  // Apply settings change
-        tagifyRelatesTo.update();
-        tagifyDependsOn.update();
+        tagifyTags.DOM.input.readOnly = !editable;
+        tagifyRelatesTo.DOM.input.readOnly = !editable;
+        tagifyDependsOn.DOM.input.readOnly = !editable;
 
         // Additional logging for troubleshooting
         console.log('Title Input State:', form.querySelector('.note-title').readOnly);
