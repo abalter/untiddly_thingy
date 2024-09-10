@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note Taking App</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css"> <!-- Add Tagify CSS -->
 </head>
 <body>
     <div class="container">
@@ -14,7 +14,7 @@
                 <!-- Notes will be dynamically loaded here -->
             </div>
         </div>
-        
+
         <div class="right-section">
             <h2>Global Controls</h2>
             <form id="search-form">
@@ -32,13 +32,13 @@
                 <button type="submit">Search</button>
                 <button type="button" id="clear-button">Clear Search</button>
             </form>
-            
+
             <button id="new-note-button">New Note</button>
             <button id="save-button">Save All Notes</button>
             <input type="file" id="import-notes" accept=".json">
         </div>
     </div>
-    
+
     <template id="note-template">
         <form class="note-form">
             <label for="title">Title:</label>
@@ -46,11 +46,11 @@
             <label for="content">Content:</label>
             <textarea name="content" class="note-content" rows="4" readonly></textarea>
             <label for="tags">Tags:</label>
-            <select name="tags" class="note-tags" multiple></select>
+            <input type="text" name="tags" class="note-tags" value="">
             <label for="relates-to">Relates To:</label>
-            <select name="relates-to" class="note-relates-to" multiple></select>
+            <input type="text" name="relates-to" class="note-relates-to" value="">
             <label for="depends-on">Depends On:</label>
-            <select name="depends-on" class="note-depends-on" multiple></select>
+            <input type="text" name="depends-on" class="note-depends-on" value="">
             <p class="note-dates">
                 <span class="created-date"></span>
                 <span class="modified-date"></span>
@@ -60,8 +60,8 @@
             <button type="button" class="delete-note-button">Delete</button>
         </form>
     </template>
-    
-    <script src="https://cdn.jsdelivr.net/npm/choices.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script> <!-- Add Tagify JS -->
     <script src="app.js"></script>
 </body>
 </html>

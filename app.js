@@ -50,8 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const note = document.createElement('div');
         note.classList.add('note');
         notesContainer.insertBefore(note, notesContainer.firstChild);
+        updateLists(); // Ensure lists are updated before populating form
         populateForm(note);
-        updateLists();
     }
 
     function populateForm(note, data = {}) {
@@ -67,61 +67,106 @@ document.addEventListener("DOMContentLoaded", () => {
 
         titleInput.value = data.title || '';
         contentInput.value = data.content || '';
-        const tags = typeof data.tags === 'string' ? data.tags : '';
-        const relatesTo = typeof data.relatesTo === 'string' ? data.relatesTo : '';
-        const dependsOn = typeof data.dependsOn === 'string' ? data.dependsOn : '';
+        const tags = data.tags ? data.tags.split(', ') : [];
+        const relatesTo = data.relatesTo ? data.relatesTo.split(', ') : [];
+        const dependsOn = data.dependsOn ? data.dependsOn.split(', ') : [];
+
+        // Convert tags, relates-to, and depends-on into Tagify-friendly format
+        const tagsStr = tags.map(tag => ({ value: tag }));
+        const relatesToStr = relatesTo.map(item => ({ value: item }));
+        const dependsOnStr = dependsOn.map(item => ({ value: item }));
 
         createdDateSpan.textContent = data.created ? `Created: ${data.created}` : '';
         modifiedDateSpan.textContent = data.modified ? `Modified: ${data.modified}` : '';
 
-        const tagsChoices = new Choices(tagsInput, {
-            removeItemButton: true,
-            duplicateItemsAllowed: false,
-            items: tags ? tags.split(', ').map(tag => ({ value: tag, label: tag })) : [],
-            choices: tagsList.map(tag => ({ value: tag, label: tag }))
-        });
+        console.log(`Populating Tagify for note: ${data.title}`);
+        console.log('Existing tags:', tags);
+        console.log('Tags list:', tagsList);
 
-        const relatesToChoices = new Choices(relatesToInput, {
-            searchEnabled: true,
-            shouldSort: false,
-            choices: titlesList.map(title => ({ value: title, label: title })),
-            items: relatesTo ? relatesTo.split(', ').map(rel => ({ value: rel, label: rel })) : []
+        // Initialize Tagify for Tags
+        const tagifyTags = new Tagify(tagsInput, {
+            whitelist: tagsList,
+            enforceWhitelist: true,
+            dropdown: {
+                position: 'input',
+                enabled: 0
+            }
         });
+        tagifyTags.addTags(tagsStr);
 
-        const dependsOnChoices = new Choices(dependsOnInput, {
-            searchEnabled: true,
-            shouldSort: false,
-            choices: titlesList.map(title => ({ value: title, label: title })),
-            items: dependsOn ? dependsOn.split(', ').map(dep => ({ value: dep, label: dep })) : []
+        // Initialize Tagify for Relates To
+        const tagifyRelatesTo = new Tagify(relatesToInput, {
+            whitelist: titlesList,
+            enforceWhitelist: true,
+            dropdown: {
+                position: 'input',
+                enabled: 0
+            }
         });
+        tagifyRelatesTo.addTags(relatesToStr);
 
-        form.querySelector('.save-note-button').addEventListener('click', () => saveNote(note, form, tagsChoices, relatesToChoices, dependsOnChoices));
-        form.querySelector('.edit-note-button').addEventListener('click', () => editNoteForm(form, tagsChoices, relatesToChoices, dependsOnChoices));
+        // Initialize Tagify for Depends On
+        const tagifyDependsOn = new Tagify(dependsOnInput, {
+            whitelist: titlesList,
+            enforceWhitelist: true,
+            dropdown: {
+                position: 'input',
+                enabled: 0
+            }
+        });
+        tagifyDependsOn.addTags(dependsOnStr);
+
+        form.querySelector('.save-note-button').addEventListener('click', () => saveNote(note, form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
+        form.querySelector('.edit-note-button').addEventListener('click', () => editNoteForm(form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
         form.querySelector('.delete-note-button').addEventListener('click', () => deleteNoteElement(note));
+
+        // Set fields to readOnly initially to ensure they are not editable
+        setFormFieldsEditable(form, false, tagifyTags, tagifyRelatesTo, tagifyDependsOn);
 
         note.innerHTML = '';
         note.appendChild(form);
         note.style.display = 'block';
+
+        console.log(`Populated form for note with title "${data.title}"`);
     }
 
-    function editNoteForm(form, tagsChoices, relatesToChoices, dependsOnChoices) {
+    function setFormFieldsEditable(form, editable, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
+        const readOnlyState = editable ? false : true;
+        form.querySelector('.note-title').readOnly = readOnlyState;
+        form.querySelector('.note-content').readOnly = readOnlyState;
+
+        console.log(`Setting form fields to ${editable ? 'editable' : 'non-editable'}`);
+
+        tagifyTags.settings.readonly = !editable;
+        tagifyRelatesTo.settings.readonly = !editable;
+        tagifyDependsOn.settings.readonly = !editable;
+
+        tagifyTags.update();  // Apply settings change
+        tagifyRelatesTo.update();
+        tagifyDependsOn.update();
+
+        // Additional logging for troubleshooting
+        console.log('Title Input State:', form.querySelector('.note-title').readOnly);
+        console.log('Content Input State:', form.querySelector('.note-content').readOnly);
+        console.log('Tags Input Readonly State:', !editable);
+        console.log('Relates To Input Readonly State:', !editable);
+        console.log('Depends On Input Readonly State:', !editable);
+    }
+
+    function editNoteForm(form, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
         console.log("Editing note...");
-        const inputs = form.querySelectorAll('.note-title, .note-content, .note-tags, .note-relates-to, .note-depends-on');
-        inputs.forEach(input => input.removeAttribute('readonly'));
-        tagsChoices.setChoices(tagsList.map(tag => ({ value: tag, label: tag })), 'value', 'label', true);
-        relatesToChoices.setChoices(titlesList.map(title => ({ value: title, label: title })), 'value', 'label', true);
-        dependsOnChoices.setChoices(titlesList.map(title => ({ value: title, label: title })), 'value', 'label', true);
+        setFormFieldsEditable(form, true, tagifyTags, tagifyRelatesTo, tagifyDependsOn);
         form.querySelector('.save-note-button').style.display = 'inline-block';
         form.querySelector('.edit-note-button').style.display = 'none';
     }
 
-    function saveNote(note, form, tagsChoices, relatesToChoices, dependsOnChoices) {
+    function saveNote(note, form, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
         console.log("Saving note...");
         const title = form.querySelector('.note-title').value.trim();
         const content = form.querySelector('.note-content').value.trim();
-        const tags = tagsChoices.getValue(true).join(', ') || '';
-        const relatesTo = relatesToChoices.getValue(true).join(', ');
-        const dependsOn = dependsOnChoices.getValue(true).join(', ');
+        const tags = tagifyTags.value.map(tag => tag.value).join(', ');
+        const relatesTo = tagifyRelatesTo.value.map(item => item.value).join(', ');
+        const dependsOn = tagifyDependsOn.value.map(item => item.value).join(', ');
         const created = form.querySelector('.created-date').textContent.replace("Created: ", "") || new Date().toISOString();
         const modified = new Date().toISOString();
 
@@ -143,8 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
         form.querySelector('.created-date').textContent = `Created: ${created}`;
         form.querySelector('.modified-date').textContent = `Modified: ${modified}`;
 
-        const inputs = form.querySelectorAll('.note-title, .note-content, .note-tags, .note-relates-to, .note-depends-on');
-        inputs.forEach(input => input.setAttribute('readonly', true));
+        // Set fields to readOnly after saving
+        setFormFieldsEditable(form, false, tagifyTags, tagifyRelatesTo, tagifyDependsOn);
+
         form.querySelector('.save-note-button').style.display = 'none';
         form.querySelector('.edit-note-button').style.display = 'inline';
         updateLists();
@@ -221,13 +267,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const jsonData = JSON.parse(e.target.result);
+                console.log("Imported data:", jsonData);
                 jsonData.forEach(data => {
                     console.log("Importing note:", data);
                     const note = document.createElement('div');
                     note.classList.add('note');
                     note.dataset.id = data.id;
                     note.dataset.title = data.title;
-                    note.dataset.tags = data.tags || '';
+
+                    // Ensure tags split correctly here
+                    note.dataset.tags = data.tags ? data.tags.split(',').map(tag => tag.trim()).join(', ') : '';
                     note.dataset.relatesTo = data.relatesTo || '';
                     note.dataset.dependsOn = data.dependsOn || '';
                     note.dataset.created = data.created || '';
@@ -235,10 +284,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     note.dataset.content = data.content || '';
 
                     notesContainer.appendChild(note);
-                    // Initialize Choices.js after appending note to DOM
-                    populateForm(note, data);
                 });
+
+                // Update lists here before populating the forms
                 updateLists();
+
+                // Initialize Tagify after appending note to DOM
+                jsonData.forEach(data => {
+                    const note = notesContainer.querySelector(`div[data-id="${data.id}"]`);
+                    if (note) {
+                        populateForm(note, data);
+                    }
+                });
             };
             reader.readAsText(file);
         }
