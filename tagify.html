@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggle Tagify Input Editable State</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.16.2/tagify.css" rel="stylesheet">
+    <style>
+        .tagify--readonly .tagify__input {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label for="note-tags">Tags:</label>
+        <input name="tags" class="note-tags" placeholder="Add tags" value="example-tag-1,example-tag-2">
+    </div>
+    <button onclick="setTagifyEditMode(true)">Enable Editing</button>
+    <button onclick="setTagifyEditMode(false)">Disable Editing</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.16.2/tagify.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tagInput = document.querySelector('.note-tags');
+            const tagify = new Tagify(tagInput, {
+                whitelist: ['example-tag-1', 'example-tag-2', 'example-tag-3'],
+                enforceWhitelist: false,
+                dropdown: {
+                    position: 'input',
+                    enabled: 0 // Always show suggestions
+                }
+            });
+
+            window.setTagifyEditMode = function(editable) {
+                tagify.setReadonly(!editable); // Utilize Tagify's setReadonly method
+                const inputElement = tagify.DOM.input;
+                
+                if (editable) {
+                    inputElement.removeAttribute('readonly');
+                } else {
+                    inputElement.setAttribute('readonly', true);
+                }
+            };
+
+            // Initially set the Tagify input as non-editable
+            setTagifyEditMode(false);
+        });
+    </script>
+</body>
+</html>
