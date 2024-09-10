@@ -136,3 +136,53 @@ button:hover {
   background-color: DodgerBlue !important; 
   color: #ffffff; 
 }
+
+.pill {
+  display: inline-block;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin: 5px;
+  position: relative;
+  font-size: 0.9em;
+}
+
+.pill-remove {
+  margin-left: 10px;
+  color: red;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.editable input, .editable textarea {
+  border: 2px solid #007bff;
+  background-color: #f9f9f9;
+}
+
+template {
+  display: none;
+}
+
+.note-form label,
+.note-form input,
+.note-form textarea,
+.note-form button {
+    display: block;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.pill {
+    display: inline-block;
+    background-color: #d1e7ff;
+    border-radius: 12px;
+    padding: 5px 10px;
+    margin: 2px;
+    font-size: 0.9em;
+}
+
+.pill-remove {
+    margin-left: 8px;
+    cursor: pointer;
+    color: red;
+}

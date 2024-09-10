@@ -1,14 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note Taking App</title>
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css" type="text/css"> -->
-    <!-- <link rel="stylesheet" href="https://unpkg.com/mvp.css"> -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"> -->
-    <link rel="stylesheet" href="style.css"></head>
+    <link rel="icon" href="path/to/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Add Choices-JS CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+</head>
+
 <body>
+
+    <template id="note-template">
+        <form class="note-form">
+            <label for="title">Title:</label>
+            <input type="text" name="title" class="note-title" required>
+
+            <label for="content">Content:</label>
+            <textarea name="content" class="note-content" rows="4"></textarea>
+
+            <label for="tags">Tags:</label>
+            <select class="note-tags choices-multiple" multiple></select>
+
+            <label for="relates-to">Relates To:</label>
+            <select class="note-relates-to choices-single"></select>
+
+            <label for="depends-on">Depends On:</label>
+            <select class="note-depends-on choices-single"></select>
+
+            <button type="button" class="save-note-button">Save</button>
+        </form>
+    </template>
+
+
+
+
     <div id="app-container">
         <div id="notes-display">
             <!-- Notes will be dynamically added here -->
@@ -42,6 +74,9 @@
             <button id="global-save">Save All Notes</button>
             <input type="file" id="import-file" accept=".json" style="display: none;">
             <button id="import-notes">Import Notes</button>
+            <button id="display-tags-titles">Display All Tags and Titles</button>
+            <div id="tags-display"></div>
+            <div id="titles-display"></div>
         </div>
     </div>
     <template id="note-template">
@@ -69,6 +104,10 @@
             <button type="button" class="delete-note">Delete</button>
         </div>
     </template>
-    <script type="module" src="script.js"></script>
+
+    <!-- Load the split JavaScript files -->
+    <script src="app.js"></script>
+    <script src="notes.js"></script>
 </body>
+
 </html>
