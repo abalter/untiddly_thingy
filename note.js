@@ -1,47 +1,22 @@
 // note.js
 
-function createNewNote() {
-    const template = document.querySelector('#note-template');
-    const newNote = template.content.cloneNode(true);
+function populateForm(note, data = {}) {
+    const template = document.querySelector('#note-template').content.cloneNode(true);
 
-    // Append new note to container
-    document.querySelector('#notes-container').prepend(newNote);
+    const titleInput = template.querySelector('.note-title');
+    const contentInput = template.querySelector('.note-content');
+    const tagsInput = template.querySelector('.note-tags');
+    const relatesToInput = template.querySelector('.note-relates-to');
+    const dependsOnInput = template.querySelector('.note-depends-on');
 
-    // Additional logic for new notes (e.g., setting up event listeners)
-    setupNoteEvents();
-}
+    titleInput.value = data.title || note.dataset.title || '';
+    contentInput.value = data.content || note.dataset.content || '';
+    tagsInput.value = data.tags || note.dataset.tags || '';
+    relatesToInput.value = data.relatesTo || note.dataset.relatesTo || '';
+    dependsOnInput.value = data.dependsOn || note.dataset.dependsOn || '';
 
-function saveNote(noteElement) {
-    // Logic for saving individual notes
-    const title = noteElement.querySelector('.note-title').value;
-    const content = noteElement.querySelector('.note-content').value;
-    // Update the dataset attributes
-    noteElement.dataset.title = title;
-    noteElement.dataset.content = content;
-
-    // Handle saving or updating logic
-}
-
-function updateNotesDisplay() {
-    // Logic to update and refresh notes based on search or sorting
-    const notes = document.querySelectorAll('.note');
-    notes.forEach(note => {
-        // Perform any necessary updates to each note
-    });
-}
-
-function setupNoteEvents() {
-    const saveButtons = document.querySelectorAll('.save-note-button');
-    saveButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const noteElement = event.target.closest('.note'); // Closest note element
-            if (noteElement) {
-                saveNote(noteElement);
-            } else {
-                console.error('Error: noteElement is null');
-            }
-        });
-    });
+    note.innerHTML = ''; // Clear the note's content
+    note.appendChild(template);
 }
 
 function saveNote(noteElement) {
@@ -51,13 +26,12 @@ function saveNote(noteElement) {
     const relatesTo = noteElement.querySelector('.note-relates-to').value.trim();
     const dependsOn = noteElement.querySelector('.note-depends-on').value.trim();
 
-    // Check if the note already exists
-    if (!noteElement) {
-        console.error('Error: Note element not found.');
+    if (!title) {
+        alert("Title is required");
         return;
     }
 
-    // Update dataset attributes
+    // Update note dataset
     noteElement.dataset.title = title;
     noteElement.dataset.content = content;
     noteElement.dataset.tags = tags;
@@ -65,28 +39,67 @@ function saveNote(noteElement) {
     noteElement.dataset.dependsOn = dependsOn;
     noteElement.dataset.modified = new Date().toISOString();
 
-    // Update autocomplete lists
-    updateAutocomplete();
-
-    // Re-populate the form with updated data
-    populateForm(noteElement, { title, content, tags, relatesTo, dependsOn });
+    updateLists();
 }
 
-function populateForm(note, data = {}) {
-    const form = document.querySelector('#note-template').content.cloneNode(true);
+function setupNoteEvents() {
+    const saveButtons = document.querySelectorAll('.save-note-button');
+    saveButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const noteElement = event.target.closest('.note');
+            saveNote(noteElement);
+        });
+    });
+}
 
-    const titleInput = form.querySelector('.note-title');
-    const contentInput = form.querySelector('.note-content');
-    const tagsInput = form.querySelector('.note-tags');
-    const relatesToInput = form.querySelector('.note-relates-to');
-    const dependsOnInput = form.querySelector('.note-depends-on');
+function createNewNote() {
+    const template = document.querySelector('#note-template').content.cloneNode(true);
+    const newNote = document.createElement('div');
+    newNote.classList.add('note');
+    newNote.appendChild(template);
 
-    titleInput.value = data.title || note.dataset.title || '';
-    contentInput.value = data.content || note.dataset.content || '';
-    tagsInput.value = data.tags || note.dataset.tags || '';
-    relatesToInput.value = data.relatesTo || note.dataset.relatesTo || '';
-    dependsOnInput.value = data.dependsOn || note.dataset.dependsOn || '';
+    document.querySelector('#notes-container').prepend(newNote);
+    setupNoteEvents(); // Attach save event to the new note
+}
 
-    note.innerHTML = ''; // Clear the current content of the note div
-    note.appendChild(form);
+function updateAutocomplete() {
+    const tagsList = [...new Set([...document.querySelectorAll('.note')].flatMap(note => note.dataset.tags.split(',').map(tag => tag.trim())))];
+    const titlesList = [...document.querySelectorAll('.note')].map(note => note.dataset.title);
+
+    const tagsDatalist = document.getElementById('tags-datalist');
+    tagsDatalist.innerHTML = '';
+    tagsList.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        tagsDatalist.appendChild(option);
+    });
+
+    const titlesDatalist = document.getElementById('titles-datalist');
+    titlesDatalist.innerHTML = '';
+    titlesList.forEach(title => {
+        const option = document.createElement('option');
+        option.value = title;
+        titlesDatalist.appendChild(option);
+    });
+}
+
+function updateLists() {
+    const tagsList = [...new Set([...document.querySelectorAll('.note')].flatMap(note => note.dataset.tags.split(',').map(tag => tag.trim())))];
+    const titlesList = [...document.querySelectorAll('.note')].map(note => note.dataset.title);
+
+    const tagsDatalist = document.getElementById('tags-datalist');
+    tagsDatalist.innerHTML = '';
+    tagsList.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        tagsDatalist.appendChild(option);
+    });
+
+    const titlesDatalist = document.getElementById('titles-datalist');
+    titlesDatalist.innerHTML = '';
+    titlesList.forEach(title => {
+        const option = document.createElement('option');
+        option.value = title;
+        titlesDatalist.appendChild(option);
+    });
 }
