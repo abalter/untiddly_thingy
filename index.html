@@ -7,8 +7,6 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css" type="text/css">
-    <!-- <link rel="stylesheet" href="https://unpkg.com/mvp.css"> -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"> -->
 </head>
 <body>
     <div class="left-section">
@@ -17,6 +15,7 @@
             <!-- Notes will be dynamically loaded here -->
         </div>
     </div>
+
     <!-- Right section for search and other controls -->
     <div class="right-section">
         <h1>Search & Controls</h1>
@@ -47,19 +46,23 @@
             </select>
             <button type="button" id="sort-button">Sort</button>
         </form>
+
         <!-- New Note Button -->
         <button id="new-note-button">New Note</button>
         <!-- Save Button -->
         <button id="save-button">Save Notes</button>
     </div>
-    
+
+    <!-- Placeholders for data -->
     <datalist id="tags-datalist"></datalist>
     <datalist id="titles-datalist"></datalist>
-    
-    <div id="template-container"></div> <!-- Template container -->
+
+    <!-- Template container -->
+    <div id="template-container"></div>
+
+    <!-- Script Files -->
     <script src="note.js"></script>
     <script src="app_controls.js"></script>
     <script src="main.js"></script>
-
 </body>
 </html>

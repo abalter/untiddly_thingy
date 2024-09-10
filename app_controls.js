@@ -3,62 +3,85 @@
 function initializeApp() {
     setupSearch();
     setupSorting();
+    setupClearButton();
     setupNewNoteButton();
     setupSaveButton();
-    setupClearButton();
-    updateNoteList();
 }
 
 function setupSearch() {
-    document.getElementById('search-form').addEventListener('submit', (event) => {
+    const searchForm = document.getElementById("search-form");
+    searchForm.addEventListener("submit", (event) => {
         event.preventDefault();
         searchNotes();
     });
 }
 
 function setupSorting() {
-    document.getElementById('sort-button').addEventListener('click', sortNotes);
-}
-
-function setupNewNoteButton() {
-    document.getElementById('new-note-button').addEventListener('click', createNewNote);
-}
-
-function setupSaveButton() {
-    document.getElementById('save-button').addEventListener('click', saveAllNotes);
-}
-
-function setupClearButton() {
-    document.getElementById('clear-button').addEventListener('click', clearSearchResults);
-}
-
-function searchNotes() {
-    const searchTerm = document.getElementById('search-term').value.toLowerCase();
-    const notes = document.querySelectorAll('.note');
-
-    notes.forEach(note => {
-        const tags = note.dataset.tags.toLowerCase();
-        const title = note.dataset.title.toLowerCase();
-        const relatesTo = note.dataset.relatesTo.toLowerCase();
-        const dependsOn = note.dataset.dependsOn.toLowerCase();
-        const content = note.dataset.content.toLowerCase();
-
-        if (tags.includes(searchTerm) || title.includes(searchTerm) || relatesTo.includes(searchTerm) || dependsOn.includes(searchTerm) || content.includes(searchTerm)) {
-            populateForm(note, {
-                title: note.dataset.title,
-                content: note.dataset.content,
-                tags: note.dataset.tags,
-                relatesTo: note.dataset.relatesTo,
-                dependsOn: note.dataset.dependsOn
-            });
-            note.style.display = 'block';
-        } else {
-            note.style.display = 'none';
-        }
+    const sortButton = document.getElementById("sort-button");
+    sortButton.addEventListener("click", () => {
+        sortNotes();
     });
 }
 
-
-function updateNoteList() {
-    updateAutocomplete();
+function setupClearButton() {
+    const clearButton = document.getElementById("clear-button");
+    clearButton.addEventListener("click", () => {
+        clearSearchResults();
+    });
 }
+
+function setupNewNoteButton() {
+    const newNoteButton = document.getElementById("new-note-button");
+    newNoteButton.addEventListener("click", () => {
+        createNewNote();
+    });
+}
+
+function setupSaveButton() {
+    const saveButton = document.getElementById("save-button");
+    saveButton.addEventListener("click", () => {
+        saveAllNotes();
+    });
+}
+
+// Sorting notes (stub function, to be fully implemented)
+function sortNotes() {
+    const sortField = document.getElementById("sort-field").value;
+    const notes = [...document.querySelectorAll(".note")];
+
+    notes.sort((a, b) => {
+        const fieldA = a.dataset[sortField].toLowerCase();
+        const fieldB = b.dataset[sortField].toLowerCase();
+        return fieldA.localeCompare(fieldB);
+    });
+
+    const notesContainer = document.getElementById("notes-container");
+    notesContainer.innerHTML = ""; // Clear container
+    notes.forEach((note) => notesContainer.appendChild(note));
+}
+
+// Function to clear search results
+function clearSearchResults() {
+    const notes = document.querySelectorAll(".note");
+    notes.forEach((note) => {
+        note.style.display = "none";
+    });
+}
+
+// Function to create a new note (stub, needs implementation)
+function createNewNote() {
+    const noteContainer = document.getElementById("notes-container");
+    const template = document.getElementById("note-template").content.cloneNode(true);
+    noteContainer.insertBefore(template, noteContainer.firstChild);
+
+    // Initialize note events for this newly created note
+    const newNote = noteContainer.querySelector(".note");
+    setupNoteEvents(newNote);
+}
+
+// Function to save all notes (stub, needs implementation)
+function saveAllNotes() {
+    // This function should save all notes to disk or local storage
+    console.log("Saving notes...");
+}
+
