@@ -1,0 +1,62 @@
+[
+  {
+    "id": "coffee-table",
+    "title": "Coffee table",
+    "tags": "favorites, hobbies",
+    "relatesTo": "",
+    "dependsOn": "Title A, Meals",
+    "content": "This is a note about a coffee table idea.",
+    "created": "2024-09-10T08:28:40.677Z",
+    "modified": "2024-09-10T08:34:06.208Z"
+  },
+  {
+    "id": "get-hobbies",
+    "title": "Get hobbies",
+    "tags": "foods, colors, favorites",
+    "relatesTo": "Get hobbies",
+    "dependsOn": "Title A",
+    "content": "Find notes wasdfasdfith hobbies.",
+    "created": "2024-09-10T02:39:22.538Z",
+    "modified": "2024-09-10T08:34:28.746Z"
+  },
+  {
+    "id": "",
+    "title": "Title A",
+    "tags": "favorites,colors",
+    "relatesTo": "",
+    "dependsOn": "",
+    "content": "My favorite color is red.",
+    "created": "2024-09-10T02:37:57.960Z",
+    "modified": "2024-09-10T03:42:54.703Z"
+  },
+  {
+    "id": "",
+    "title": "New title",
+    "tags": "favorites,hobbies",
+    "relatesTo": "",
+    "dependsOn": "",
+    "content": "My favorite hobby is music.",
+    "created": "2024-09-10T02:38:48.393Z",
+    "modified": "2024-09-10T03:43:10.992Z"
+  },
+  {
+    "id": "",
+    "title": "Title B",
+    "tags": "favorites,colors",
+    "relatesTo": "",
+    "dependsOn": "",
+    "content": "My favorite color is green. But I also like red.",
+    "created": "2024-09-10T02:38:18.572Z",
+    "modified": "2024-09-10T03:44:38.709Z"
+  },
+  {
+    "id": "",
+    "title": "Meals",
+    "tags": "favorites,foods",
+    "relatesTo": "",
+    "dependsOn": "New title",
+    "content": "My favorite food is spaghetti with red sauce.",
+    "created": "2024-09-10T03:44:44.361Z",
+    "modified": "2024-09-10T03:45:15.156Z"
+  }
+]
