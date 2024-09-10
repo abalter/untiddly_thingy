@@ -1,113 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note Taking App</title>
-    <link rel="icon" href="path/to/favicon.ico" type="image/x-icon">
-
     <link rel="stylesheet" href="style.css">
-
-    <!-- Add Choices-JS CSS and JS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 </head>
-
 <body>
-
+    <div class="container">
+        <div class="left-section">
+            <div id="notes-container">
+                <!-- Notes will be dynamically loaded here -->
+            </div>
+        </div>
+        
+        <div class="right-section">
+            <h2>Global Controls</h2>
+            <form id="search-form">
+                <input type="text" id="search-term" placeholder="Search...">
+                <select id="search-field">
+                    <option value="global">Global Search</option>
+                    <option value="title">Title</option>
+                    <option value="content">Content</option>
+                    <option value="tags">Tags</option>
+                    <option value="relates-to">Relates To</option>
+                    <option value="depends-on">Depends On</option>
+                    <option value="created">Create Date</option>
+                    <option value="modified">Modify Date</option>
+                </select>
+                <button type="submit">Search</button>
+                <button type="button" id="clear-button">Clear Search</button>
+            </form>
+            
+            <button id="new-note-button">New Note</button>
+            <button id="save-button">Save All Notes</button>
+            <input type="file" id="import-notes" accept=".json">
+        </div>
+    </div>
+    
     <template id="note-template">
         <form class="note-form">
             <label for="title">Title:</label>
-            <input type="text" name="title" class="note-title" required>
-
+            <input type="text" name="title" class="note-title" required readonly>
             <label for="content">Content:</label>
-            <textarea name="content" class="note-content" rows="4"></textarea>
-
+            <textarea name="content" class="note-content" rows="4" readonly></textarea>
             <label for="tags">Tags:</label>
-            <select class="note-tags choices-multiple" multiple></select>
-
+            <select name="tags" class="note-tags" multiple></select>
             <label for="relates-to">Relates To:</label>
-            <select class="note-relates-to choices-single"></select>
-
+            <select name="relates-to" class="note-relates-to" multiple></select>
             <label for="depends-on">Depends On:</label>
-            <select class="note-depends-on choices-single"></select>
-
-            <button type="button" class="save-note-button">Save</button>
-        </form>
-    </template>
-
-
-
-
-    <div id="app-container">
-        <div id="notes-display">
-            <!-- Notes will be dynamically added here -->
-        </div>
-        <div id="global-controls">
-            <h2>Search and Controls</h2>
-            <form id="search-form">
-                <input type="text" id="search-input" placeholder="Search...">
-                <select id="search-type">
-                    <option value="global">Global</option>
-                    <option value="content">Content</option>
-                    <option value="title">Title</option>
-                    <option value="tags">Tags</option>
-                    <option value="relates-to">Relates-To</option>
-                    <option value="depends-on">Depends-On</option>
-                    <option value="create-date">Create Date</option>
-                    <option value="modify-date">Modify Date</option>
-                </select>
-                <button type="submit">Search</button>
-                <button type="button" id="clear-search">Clear Search</button>
-            </form>
-            <div id="sort-control">
-                <label for="sort-select">Sort by:</label>
-                <select id="sort-select">
-                    <option value="title">Title</option>
-                    <option value="created">Created Date</option>
-                    <option value="modified">Modified Date</option>
-                </select>
-            </div>
-            <button id="new-note">New Note</button>
-            <button id="global-save">Save All Notes</button>
-            <input type="file" id="import-file" accept=".json" style="display: none;">
-            <button id="import-notes">Import Notes</button>
-            <button id="display-tags-titles">Display All Tags and Titles</button>
-            <div id="tags-display"></div>
-            <div id="titles-display"></div>
-        </div>
-    </div>
-    <template id="note-template">
-        <div class="note">
-            <input type="text" class="note-title" placeholder="Title" readonly>
-            <textarea class="note-content" placeholder="Content" readonly></textarea>
-            <div class="note-tags-container">
-                <input type="text" class="note-tags-input" placeholder="Add tags..." readonly>
-                <div class="note-tags"></div>
-            </div>
-            <div class="note-relates-to-container">
-                <input type="text" class="note-relates-to-input" placeholder="Add related notes..." readonly>
-                <div class="note-relates-to"></div>
-            </div>
-            <div class="note-depends-on-container">
-                <input type="text" class="note-depends-on-input" placeholder="Add dependencies..." readonly>
-                <div class="note-depends-on"></div>
-            </div>
-            <div class="note-dates">
+            <select name="depends-on" class="note-depends-on" multiple></select>
+            <p class="note-dates">
                 <span class="created-date"></span>
                 <span class="modified-date"></span>
-            </div>
-            <button type="button" class="edit-note">Edit</button>
-            <button type="button" class="save-note" style="display: none;">Save</button>
-            <button type="button" class="delete-note">Delete</button>
-        </div>
+            </p>
+            <button type="button" class="edit-note-button">Edit</button>
+            <button type="button" class="save-note-button" style="display:none;">Save</button>
+            <button type="button" class="delete-note-button">Delete</button>
+        </form>
     </template>
-
-    <!-- Load the split JavaScript files -->
+    
+    <script src="https://cdn.jsdelivr.net/npm/choices.js"></script>
     <script src="app.js"></script>
-    <script src="notes.js"></script>
 </body>
-
 </html>
