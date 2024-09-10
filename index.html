@@ -3,63 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notes Application</title>
-
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css" type="text/css">
-    <!-- <link rel="stylesheet" href="https://unpkg.com/mvp.css"> -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"> -->
+    <title>Note Taking App</title>
+    <!-- <link rel="stylesheet" href="styles.css"> -->
 </head>
 <body>
-    <div class="left-section">
-        <h1>Notes</h1>
-        <div id="notes-container">
-            <!-- Notes will be dynamically loaded here -->
+    <div id="app-container">
+        <div id="notes-display">
+            <!-- Notes will be dynamically added here -->
+        </div>
+        <div id="global-controls">
+            <h2>Search and Controls</h2>
+            <form id="search-form">
+                <input type="text" id="search-input" placeholder="Search...">
+                <select id="search-type">
+                    <option value="global">Global</option>
+                    <option value="content">Content</option>
+                    <option value="title">Title</option>
+                    <option value="tags">Tags</option>
+                    <option value="relates-to">Relates-To</option>
+                    <option value="depends-on">Depends-On</option>
+                    <option value="create-date">Create Date</option>
+                    <option value="modify-date">Modify Date</option>
+                </select>
+                <button type="submit">Search</button>
+                <button type="button" id="clear-search">Clear Search</button>
+            </form>
+            <div id="sort-control">
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select">
+                    <option value="title">Title</option>
+                    <option value="created">Created Date</option>
+                    <option value="modified">Modified Date</option>
+                </select>
+            </div>
+            <button id="new-note">New Note</button>
+            <button id="global-save">Save All Notes</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;">
+            <button id="import-notes">Import Notes</button>
         </div>
     </div>
-    <!-- Right section for search and other controls -->
-    <div class="right-section">
-        <h1>Search & Controls</h1>
-        <!-- Search Form -->
-        <form id="search-form">
-            <label for="search-field">Search Field:</label>
-            <select id="search-field">
-                <option value="global">Global Search</option>
-                <option value="title">Title</option>
-                <option value="content">Content</option>
-                <option value="tags">Tags</option>
-                <option value="relates-to">Relates To</option>
-                <option value="depends-on">Depends On</option>
-            </select>
-            <label for="search-operator">Search Operator:</label>
-            <select id="search-operator">
-                <option value="or">OR</option>
-                <option value="and">AND</option>
-            </select>
-            <input type="text" id="search-term" name="search" placeholder="Search term">
-            <button type="submit">Search</button>
-            <button type="button" id="clear-button">Clear</button>
-            <label for="sort-field">Sort by:</label>
-            <select id="sort-field">
-                <option value="title">Title</option>
-                <option value="created">Created Date</option>
-                <option value="modified">Modified Date</option>
-            </select>
-            <button type="button" id="sort-button">Sort</button>
-        </form>
-        <!-- New Note Button -->
-        <button id="new-note-button">New Note</button>
-        <!-- Save Button -->
-        <button id="save-button">Save Notes</button>
-    </div>
-    
-    <datalist id="tags-datalist"></datalist>
-    <datalist id="titles-datalist"></datalist>
-    
-    <div id="template-container"></div> <!-- Template container -->
-    <script src="note.js"></script>
-    <script src="app_controls.js"></script>
-    <script src="main.js"></script>
-
+    <template id="note-template">
+        <div class="note">
+            <input type="text" class="note-title" placeholder="Title" readonly>
+            <textarea class="note-content" placeholder="Content" readonly></textarea>
+            <div class="note-tags-container">
+                <input type="text" class="note-tags-input" placeholder="Add tags..." readonly>
+                <div class="note-tags"></div>
+            </div>
+            <div class="note-relates-to-container">
+                <input type="text" class="note-relates-to-input" placeholder="Add related notes..." readonly>
+                <div class="note-relates-to"></div>
+            </div>
+            <div class="note-depends-on-container">
+                <input type="text" class="note-depends-on-input" placeholder="Add dependencies..." readonly>
+                <div class="note-depends-on"></div>
+            </div>
+            <div class="note-dates">
+                <span class="created-date"></span>
+                <span class="modified-date"></span>
+            </div>
+            <button type="button" class="edit-note">Edit</button>
+            <button type="button" class="save-note" style="display: none;">Save</button>
+            <button type="button" class="delete-note">Delete</button>
+        </div>
+    </template>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
