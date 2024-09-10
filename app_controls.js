@@ -1,87 +1,62 @@
-newNoteButton.addEventListener('click', createNoteElement);
+import { NoteManager } from './note.js';
 
-clearButton.addEventListener('click', () => {
-    const notes = document.querySelectorAll('.note');
-    notes.forEach(note => note.style.display = 'none');
-});
+export class AppControl {
+    constructor() {
+        this.noteManager = new NoteManager();
+        this.searchForm = document.getElementById('search-form');
+        this.clearButton = document.getElementById('clear-button');
+        this.newNoteButton = document.getElementById('new-note-button');
+        this.saveButton = document.getElementById('save-button');
+        this.advancedSearchButton = document.getElementById('advanced-search-button');
+        this.addConditionButton = document.getElementById('add-condition');
+        this.applySortButton = document.getElementById('apply-sort');
+    }
 
-searchForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const field = searchField.value;
-    const term = searchTerm.value.toLowerCase().trim(); // Added trim to avoid leading/trailing spaces
-    const notes = document.querySelectorAll('.note');
+    init() {
+        this.loadNoteTemplate();
+        this.loadSampleNotes();
+        this.setupEventListeners();
+        this.noteManager.updateLists();
+    }
 
-    // Reset all notes to hidden initially
-    notes.forEach(note => note.style.display = 'none');
+    async loadNoteTemplate() {
+        const response = await fetch('note-form-template.html');
+        const template = await response.text();
+        document.body.insertAdjacentHTML('beforeend', template);
+    }
 
-    console.log(`Searching for "${term}" in field "${field}" using operator "or"`);
+    async loadSampleNotes() {
+        const response = await fetch('sample_notes.html');
+        const sampleNotes = await response.text();
+        document.getElementById('notes-container').innerHTML = sampleNotes;
+    }
 
-    // Filter notes based on attributes using .matches
-    notes.forEach(note => {
-        const attributes = ['data-title', 'data-content', 'data-tags', 'data-relates-to', 'data-depends-on'];
-        let match = false;
+    setupEventListeners() {
+        this.searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.noteManager.globalSearch(document.getElementById('search').value);
+        });
 
-        if (field === 'global') {
-            // If global search, check all attributes
-            match = attributes.some(attr => note.getAttribute(attr)?.toLowerCase().includes(term));
-        } else {
-            // Check only the selected attribute
-            const attribute = `data-${field}`;
-            match = note.getAttribute(attribute)?.toLowerCase().includes(term);
-        }
+        this.clearButton.addEventListener('click', () => this.noteManager.clearSearch());
+        this.newNoteButton.addEventListener('click', () => this.noteManager.createNoteElement());
+        this.saveButton.addEventListener('click', () => this.saveToDisk());
+        this.advancedSearchButton.addEventListener('click', () => this.noteManager.advancedSearch());
+        this.addConditionButton.addEventListener('click', () => this.addSearchCondition());
+        this.applySortButton.addEventListener('click', () => this.noteManager.sortNotes());
+    }
 
-        console.log(`Checking note: ${note.dataset.id}, match: ${match}`);
+    saveToDisk() {
+        const htmlContent = document.documentElement.outerHTML;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'notes_app.html';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
-        if (match) {
-            populateForm(note, {
-                title: note.dataset.title,
-                content: note.dataset.content,
-                tags: note.dataset.tags,
-                relatesTo: note.dataset.relatesTo,
-                dependsOn: note.dataset.dependsOn
-            });
-            note.style.display = 'block';
-            console.log(`Note displayed: ${note.dataset.id}`);
-        }
-    });
-});
-
-// Sorting by field
-sortButton.addEventListener('click', () => {
-    const field = sortField.value;
-    const notes = Array.from(document.querySelectorAll('.note'));
-
-    const sortedNotes = notes.sort((a, b) => {
-        if (field === 'title') {
-            return a.dataset.title.localeCompare(b.dataset.title);
-        } else if (field === 'created') {
-            return new Date(a.dataset.created) - new Date(b.dataset.created);
-        } else if (field === 'modified') {
-            return new Date(a.dataset.modified) - new Date(b.dataset.modified);
-        }
-    });
-
-    sortedNotes.forEach(note => notesContainer.appendChild(note));
-});
-
-// Save HTML to local drive
-saveButton.addEventListener('click', () => {
-    const htmlContent = document.documentElement.outerHTML;
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'notes.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-});
-
-function loadExistingNotes() {
-    const notes = document.querySelectorAll('.note');
-    notes.forEach(note => {
-        note.style.display = 'none'; // Ensure notes are hidden initially
-    });
+    addSearchCondition() {
+        // Implementation for adding a search condition
+    }
 }
