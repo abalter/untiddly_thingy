@@ -1,70 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Note Taking App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css"> <!-- Add Tagify CSS -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css" type="text/css"> -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
-</head>
-<body>
-    <div class="container">
-        <div class="left-section">
-            <div id="notes-container">
-                <!-- Notes will be dynamically loaded here -->
-            </div>
-        </div>
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Note Taking App</title> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.css"> <link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css"> <!-- Add Tagify CSS --> <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css" type="text/css"> --> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"> </head> <body> <div class="container"> <div class="left-section"> <div id="notes-container"> <!-- Notes will be dynamically loaded here --> </div> </div>
 
-        <div class="right-section">
-            <h2>Global Controls</h2>
-            <form id="search-form">
-                <input type="text" id="search-term" placeholder="Search...">
-                <select id="search-field">
-                    <option value="global">Global Search</option>
-                    <option value="title">Title</option>
-                    <option value="content">Content</option>
-                    <option value="tags">Tags</option>
-                    <option value="relates-to">Relates To</option>
-                    <option value="depends-on">Depends On</option>
-                    <option value="created">Create Date</option>
-                    <option value="modified">Modify Date</option>
-                </select>
-                <button type="submit">Search</button>
-                <button type="button" id="clear-button">Clear Search</button>
-            </form>
+  <div class="right-section">
+    <h2>Global Controls</h2>
+    <form id="search-form">
+        <input type="text" id="search-term" placeholder="Search...">
+        <select id="search-field">
+            <option value="global">Global Search</option>
+            <option value="title">Title</option>
+            <option value="content">Content</option>
+            <option value="tags">Tags</option>
+            <option value="relates-to">Relates To</option>
+            <option value="depends-on">Depends On</option>
+            <option value="created">Create Date</option>
+            <option value="modified">Modify Date</option>
+        </select>
+        <button type="submit">Search</button>
+        <button type="button" id="clear-button">Clear Search</button>
+    </form>
 
-            <button id="new-note-button">New Note</button>
-            <button id="save-button">Save All Notes</button>
-            <input type="file" id="import-notes" accept=".json">
-        </div>
-    </div>
+    <button id="new-note-button">New Note</button>
+    <button id="save-button">Save All Notes</button>
+    <input type="file" id="import-notes" accept=".json">
+  </div>
+  </div>
 
-    <template id="note-template">
-        <form class="note-form">
-            <label for="title">Title:</label>
-            <input type="text" name="title" class="note-title" required readonly>
-            <label for="content">Content:</label>
-            <textarea name="content" class="note-content" rows="4" readonly></textarea>
-            <label for="tags">Tags:</label>
-            <input type="text" name="tags" class="note-tags" value="">
-            <label for="relates-to">Relates To:</label>
-            <input type="text" name="relates-to" class="note-relates-to" value="">
-            <label for="depends-on">Depends On:</label>
-            <input type="text" name="depends-on" class="note-depends-on" value="">
-            <p class="note-dates">
-                <span class="created-date"></span>
-                <span class="modified-date"></span>
-            </p>
-            <button type="button" class="edit-note-button">Edit</button>
-            <button type="button" class="save-note-button" style="display:none;">Save</button>
-            <button type="button" class="delete-note-button">Delete</button>
-        </form>
-    </template>
+  <template id="note-template">
+  <form class="note-form">
+    <label for="title">Title:</label>
+    <input type="text" name="title" class="note-title" required readonly>
+    <label for="content">Content:</label>
+    <textarea name="content" class="note-content" rows="4" readonly></textarea>
+    <label for="tags">Tags:</label>
+    <input type="text" name="tags" class="note-tags" value="">
+    <label for="relates-to">Relates To:</label>
+    <input type="text" name="relates-to" class="note-relates-to" value="">
+    <label for="depends-on">Depends On:</label>
+    <input type="text" name="depends-on" class="note-depends-on" value="">
+    <p class="note-dates">
+        <span class="created-date"></span>
+        <span class="modified-date"></span>
+    </p>
+    <button type="button" class="edit-note-button">Edit</button>
+    <button type="button" class="save-note-button" style="display:none;">Save</button>
+    <button type="button" class="delete-note-button">Delete</button>
+  </form>
+  </template>
 
-    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script> <!-- Add Tagify JS -->
-    <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script> <!-- Add Tagify JS -->
+  <script src="app.js"></script>
 </body>
-</html>
+</html>  

@@ -5,7 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const clearButton = document.getElementById('clear-button');
     const saveButton = document.getElementById('save-button');
     const importNotesInput = document.getElementById('import-notes');
-    const noteTemplateContent = document.getElementById('note-template').content;
+    const noteTemplateContent = document.getElementById('note-template')?.content;
+
+    if (!noteTemplateContent) {
+        console.error('Note template content not found. Please check your HTML.');
+        return;
+    }
 
     let tagsList = [];
     let titlesList = [];
@@ -22,36 +27,52 @@ document.addEventListener("DOMContentLoaded", () => {
         loadExistingNotes();
     }
 
-    function clearSearchResults() {
-        const notes = document.querySelectorAll('.note');
-        notes.forEach(note => note.style.display = 'none');
-    }
-
     function loadExistingNotes() {
-        console.log("Loading existing notes...");
         const notes = document.querySelectorAll('.note');
         notes.forEach(note => {
-            console.log("Note Loaded:", note);
+            console.log("Loading existing note:", note);
             note.style.display = 'none';
         });
         updateLists();
     }
 
     function updateLists() {
-        tagsList = [...new Set([...document.querySelectorAll('.note')].flatMap(note =>
-            (note.dataset.tags ? note.dataset.tags.split(',').map(tag => tag.trim()) : [])))];
-        titlesList = [...new Set([...document.querySelectorAll('.note')].map(note => note.dataset.title))];
+        const notes = document.querySelectorAll('.note');
+
+        tagsList = [...new Set([...notes].flatMap(note => 
+            note.dataset.tags ? note.dataset.tags.split(',').map(tag => tag.trim()) : []))];
+        titlesList = [...new Set([...notes].map(note => note.dataset.title).filter(title => title !== ''))];
+
         console.log("Updated Tags List:", tagsList);
         console.log("Updated Titles List:", titlesList);
+
+        notes.forEach(note => {
+            const form = note.querySelector('.note-form');
+            if (form) {
+                const tagsInput = form.querySelector('.note-tags');
+                const relatesToInput = form.querySelector('.note-relates-to');
+                const dependsOnInput = form.querySelector('.note-depends-on');
+
+                if (tagsInput.tagify) tagsInput.tagify.settings.whitelist = tagsList;
+                if (relatesToInput.tagify) relatesToInput.tagify.settings.whitelist = titlesList;
+                if (dependsOnInput.tagify) dependsOnInput.tagify.settings.whitelist = titlesList;
+            }
+        });
     }
 
     function createNoteElement() {
         console.log("Creating new note...");
         const note = document.createElement('div');
         note.classList.add('note');
+        note.dataset.id = 'new-note-' + Date.now();
+        note.dataset.title = '';
+        note.dataset.content = '';
+        note.dataset.tags = '';
+        note.dataset.relatesTo = '';
+        note.dataset.dependsOn = '';
         notesContainer.insertBefore(note, notesContainer.firstChild);
-        updateLists(); // Ensure lists are updated before populating form
         populateForm(note);
+        updateLists();
     }
 
     function populateForm(note, data = {}) {
@@ -62,128 +83,123 @@ document.addEventListener("DOMContentLoaded", () => {
         const tagsInput = form.querySelector('.note-tags');
         const relatesToInput = form.querySelector('.note-relates-to');
         const dependsOnInput = form.querySelector('.note-depends-on');
-        const createdDateSpan = form.querySelector('.created-date');
-        const modifiedDateSpan = form.querySelector('.modified-date');
 
-        titleInput.value = data.title || '';
-        contentInput.value = data.content || '';
-        const tags = data.tags ? data.tags.split(', ') : [];
-        const relatesTo = data.relatesTo ? data.relatesTo.split(', ') : [];
-        const dependsOn = data.dependsOn ? data.dependsOn.split(', ') : [];
+        titleInput.value = data.title || note.dataset.title || '';
+        contentInput.value = data.content || note.dataset.content || '';
 
-        // Initialize Tagify for Tags
-        const tagifyTags = new Tagify(tagsInput, {
-            whitelist: tagsList,
-            enforceWhitelist: false,
-            dropdown: {
-                position: 'input',
-                enabled: 0
+        const initializeTagify = () => {
+            const initOrUpdateTagify = (input, whitelist, existingData) => {
+                const config = {
+                    whitelist: whitelist || [],
+                    enforceWhitelist: false,
+                    dropdown: {
+                        position: 'input',
+                        enabled: 0,
+                        maxItems: 10
+                    },
+                    originalInputValueFormat: valuesArr => valuesArr.map(item => item.value).join(', ')
+                };
+
+                if (input.tagify) {
+                    input.tagify.destroy();
+                }
+
+                input.tagify = new Tagify(input, config);
+
+                if (existingData && existingData.length > 0) {
+                    input.tagify.addTags(existingData);
+                }
+            };
+
+            const safelyGetTags = (tagString) => {
+                return tagString ? tagString.split(',').map(tag => tag.trim()).filter(tag => tag !== '') : [];
+            };
+
+            initOrUpdateTagify(tagsInput, tagsList, safelyGetTags(data.tags || note.dataset.tags));
+            initOrUpdateTagify(relatesToInput, titlesList, safelyGetTags(data.relatesTo || note.dataset.relatesTo));
+            initOrUpdateTagify(dependsOnInput, titlesList, safelyGetTags(data.dependsOn || note.dataset.dependsOn));
+        };
+
+        initializeTagify();
+
+        form.querySelector('.save-note-button').addEventListener('click', () => {
+            if (validateForm(form)) {
+                saveNote(note, form);
+                toggleFormEditable(form, false);
             }
         });
-        tagifyTags.addTags(tags);
 
-        // Initialize Tagify for Relates To
-        const tagifyRelatesTo = new Tagify(relatesToInput, {
-            whitelist: titlesList,
-            enforceWhitelist: false,
-            dropdown: {
-                position: 'input',
-                enabled: 0
-            }
+        form.querySelector('.edit-note-button').addEventListener('click', () => {
+            toggleFormEditable(form, true);
+            initializeTagify();
         });
-        tagifyRelatesTo.addTags(relatesTo);
 
-        // Initialize Tagify for Depends On
-        const tagifyDependsOn = new Tagify(dependsOnInput, {
-            whitelist: titlesList,
-            enforceWhitelist: false,
-            dropdown: {
-                position: 'input',
-                enabled: 0
-            }
+        form.querySelector('.delete-note-button').addEventListener('click', () => {
+            deleteNoteElement(note);
+            updateLists();
         });
-        tagifyDependsOn.addTags(dependsOn);
 
-        form.querySelector('.save-note-button').addEventListener('click', () => saveNote(
-            note, form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
-        form.querySelector('.edit-note-button').addEventListener('click', () => editNoteForm(
-            form, tagifyTags, tagifyRelatesTo, tagifyDependsOn));
-        form.querySelector('.delete-note-button').addEventListener('click', () => deleteNoteElement(note));
-
-        // Set fields to readOnly initially to ensure they are not editable
-        setFormFieldsEditable(form, false, tagifyTags, tagifyRelatesTo, tagifyDependsOn);
+        toggleFormEditable(form, false);
 
         note.innerHTML = '';
         note.appendChild(form);
         note.style.display = 'block';
-
-        console.log(`Populated form for note with title "${data.title}"`);
     }
 
-    function setFormFieldsEditable(form, editable, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
-        // Toggle read-only state for standard input fields
-        form.querySelector('.note-title').readOnly = !editable;
-        form.querySelector('.note-content').readOnly = !editable;
+    function toggleFormEditable(form, isEditable) {
+        form.querySelector('.note-title').readOnly = !isEditable;
+        form.querySelector('.note-content').readOnly = !isEditable;
 
-        console.log(`Setting form fields to ${editable ? 'editable' : 'non-editable'}`);
+        const saveButton = form.querySelector('.save-note-button');
+        const editButton = form.querySelector('.edit-note-button');
 
-        // Toggle readonly and contenteditable state for Tagify elements using Tagify's methods
-        tagifyTags.setReadonly(!editable);
-        tagifyRelatesTo.setReadonly(!editable);
-        tagifyDependsOn.setReadonly(!editable);
-
-        tagifyTags.DOM.input.readOnly = !editable;
-        tagifyRelatesTo.DOM.input.readOnly = !editable;
-        tagifyDependsOn.DOM.input.readOnly = !editable;
-
-        // Additional logging for troubleshooting
-        console.log('Title Input State:', form.querySelector('.note-title').readOnly);
-        console.log('Content Input State:', form.querySelector('.note-content').readOnly);
-        console.log('Tags Input Readonly State:', !editable);
-        console.log('Relates To Input Readonly State:', !editable);
-        console.log('Depends On Input Readonly State:', !editable);
+        saveButton.style.display = isEditable ? 'inline' : 'none';
+        editButton.style.display = isEditable ? 'none' : 'inline';
     }
 
-    function editNoteForm(form, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
-        console.log("Editing note...");
-        setFormFieldsEditable(form, true, tagifyTags, tagifyRelatesTo, tagifyDependsOn);
-        form.querySelector('.save-note-button').style.display = 'inline-block';
-        form.querySelector('.edit-note-button').style.display = 'none';
+    function validateForm(form) {
+        const titleInput = form.querySelector('.note-title');
+        const contentInput = form.querySelector('.note-content');
+
+        return (titleInput.value.trim() !== '' && contentInput.value.trim() !== '');
     }
 
-    function saveNote(note, form, tagifyTags, tagifyRelatesTo, tagifyDependsOn) {
+    function saveNote(note, form) {
         console.log("Saving note...");
-        const title = form.querySelector('.note-title').value.trim();
-        const content = form.querySelector('.note-content').value.trim();
-        const tags = tagifyTags.value.map(tag => tag.value).join(', ');
-        const relatesTo = tagifyRelatesTo.value.map(item => item.value).join(', ');
-        const dependsOn = tagifyDependsOn.value.map(item => item.value).join(', ');
-        const created = form.querySelector('.created-date').textContent.replace("Created: ", "") || new Date().toISOString();
-        const modified = new Date().toISOString();
 
-        const existingTitles = [...document.querySelectorAll('.note')].filter(noteEl => noteEl !== note).map(noteEl => noteEl.dataset.title);
-        if (existingTitles.includes(title)) {
-            alert('Title must be unique!');
+        const titleInput = form.querySelector('.note-title');
+        const contentInput = form.querySelector('.note-content');
+        const tagsInput = form.querySelector('.note-tags');
+        const relatesToInput = form.querySelector('.note-relates-to');
+        const dependsOnInput = form.querySelector('.note-depends-on');
+
+        if (!titleInput || !contentInput) {
+            console.error("Title or content input not found. Check the template structure.");
             return;
         }
 
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!title) {
+            alert('Title cannot be empty!');
+            return;
+        }
+
+        if (note.dataset.id.startsWith('new-note-')) {
+            delete note.dataset.id;
+        }
         note.dataset.id = title.toLowerCase().replace(/\s+/g, '-');
         note.dataset.title = title;
-        note.dataset.tags = tags;
-        note.dataset.relatesTo = relatesTo;
-        note.dataset.dependsOn = dependsOn;
-        note.dataset.created = created;
-        note.dataset.modified = modified;
         note.dataset.content = content;
 
-        form.querySelector('.created-date').textContent = `Created: ${created}`;
-        form.querySelector('.modified-date').textContent = `Modified: ${modified}`;
+        note.dataset.tags = tagsInput.tagify ? tagsInput.tagify.value.map(tag => tag.value).join(', ') : '';
+        note.dataset.relatesTo = relatesToInput.tagify ? relatesToInput.tagify.value.map(item => item.value).join(', ') : '';
+        note.dataset.dependsOn = dependsOnInput.tagify ? dependsOnInput.tagify.value.map(item => item.value).join(', ') : '';
 
-        // Set fields to readOnly after saving
-        setFormFieldsEditable(form, false, tagifyTags, tagifyRelatesTo, tagifyDependsOn);
+        note.dataset.modified = new Date().toISOString();
+        form.querySelector('.modified-date').textContent = `Modified: ${note.dataset.modified}`;
 
-        form.querySelector('.save-note-button').style.display = 'none';
-        form.querySelector('.edit-note-button').style.display = 'inline';
         updateLists();
     }
 
@@ -195,7 +211,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function searchNotes() {
-        console.log("Searching notes...");
         const searchTerm = document.getElementById('search-term').value.toLowerCase().trim();
         const field = document.getElementById('search-field').value;
         const notes = document.querySelectorAll('.note');
@@ -210,37 +225,34 @@ document.addEventListener("DOMContentLoaded", () => {
             const match = (field === 'global' && (tags.includes(searchTerm) || title.includes(searchTerm) || relatesTo.includes(searchTerm) || dependsOn.includes(searchTerm) || content.includes(searchTerm)))
                 || (field !== 'global' && note.dataset[field]?.toLowerCase().includes(searchTerm));
 
-            if (match) {
-                populateForm(note, {
-                    title: note.dataset.title,
-                    tags: note.dataset.tags,
-                    relatesTo: note.dataset.relatesTo,
-                    dependsOn: note.dataset.dependsOn,
-                    content: note.dataset.content,
-                    created: note.dataset.created,
-                    modified: note.dataset.modified
-                });
+            note.style.display = match ? 'block' : 'none';
+        });
+    }
+
+    function clearSearchResults() {
+        const notes = document.querySelectorAll('.note');
+        notes.forEach(note => {
+            if (note.dataset.id && note.dataset.id.startsWith('new-note-')) {
+                note.remove();
             } else {
                 note.style.display = 'none';
             }
         });
+        console.log("Cleared search results.");
+        updateLists();
     }
 
     function saveAllNotes() {
-        const notes = document.querySelectorAll('.note');
-        const notesData = [];
-        notes.forEach(note => {
-            notesData.push({
-                id: note.dataset.id,
-                title: note.dataset.title,
-                tags: note.dataset.tags,
-                relatesTo: note.dataset.relatesTo,
-                dependsOn: note.dataset.dependsOn,
-                content: note.dataset.content,
-                created: note.dataset.created,
-                modified: note.dataset.modified
-            });
-        });
+        const notesData = Array.from(document.querySelectorAll('.note')).map(note => ({
+            id: note.dataset.id,
+            title: note.dataset.title,
+            content: note.dataset.content,
+            tags: note.dataset.tags,
+            relatesTo: note.dataset.relatesTo,
+            dependsOn: note.dataset.dependsOn,
+            created: note.dataset.created,
+            modified: note.dataset.modified
+        }));
 
         const blob = new Blob([JSON.stringify(notesData, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -254,42 +266,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function importNotes(event) {
         const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const jsonData = JSON.parse(e.target.result);
-                console.log("Imported data:", jsonData);
-                jsonData.forEach(data => {
-                    console.log("Importing note:", data);
-                    const note = document.createElement('div');
-                    note.classList.add('note');
-                    note.dataset.id = data.id;
-                    note.dataset.title = data.title;
+        if (!file) return;
 
-                    // Ensure tags split correctly here
-                    note.dataset.tags = data.tags ? data.tags.split(',').map(tag => tag.trim()).join(', ') : '';
-                    note.dataset.relatesTo = data.relatesTo || '';
-                    note.dataset.dependsOn = data.dependsOn || '';
-                    note.dataset.created = data.created || '';
-                    note.dataset.modified = data.modified || '';
-                    note.dataset.content = data.content || '';
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const jsonData = JSON.parse(e.target.result);
+            console.log("Imported notes data:", jsonData);
+            jsonData.forEach(data => {
+                const note = document.createElement('div');
+                note.classList.add('note');
+                note.dataset.id = data.id || '';
+                note.dataset.title = data.title || '';
+                note.dataset.content = data.content || '';
+                note.dataset.tags = data.tags || '';
+                note.dataset.relatesTo = data.relatesTo || '';
+                note.dataset.dependsOn = data.dependsOn || '';
+                note.dataset.created = data.created || '';
+                note.dataset.modified = data.modified || '';
 
-                    notesContainer.appendChild(note);
-                });
-
-                // Update lists here before populating the forms
-                updateLists();
-
-                // Initialize Tagify after appending note to DOM
-                jsonData.forEach(data => {
-                    const note = notesContainer.querySelector(`div[data-id="${data.id}"]`);
-                    if (note) {
-                        populateForm(note, data);
-                    }
-                });
-            };
-            reader.readAsText(file);
+                notesContainer.appendChild(note);
+                populateForm(note, data);
+            });
+            updateLists();
         }
+        reader.readAsText(file);
     }
 
     initializeEvents();
